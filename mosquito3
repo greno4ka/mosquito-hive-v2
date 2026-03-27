@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Can be overridden from outside: REPOS=/path/to/repos ./hive 3 < list
+repos="${REPOS:-$HOME/repos}"
+
+baseDir="$PWD"
+# Use the TIMESTAMP exported by the hive script
+timestamp="${TIMESTAMP:?TIMESTAMP is not set}"
+successDir="$baseDir/success3_$timestamp"
+errorDir="$baseDir/error3_$timestamp"
+mkdir -p "$successDir" "$errorDir"
+
+mosquito3() {
+    local num="$1"
+    local package="$2"
+
+    num="$(( num - 1 ))" # to count from zero
+    printf "[%2d] %s\n" "$num" "$package build start"
+
+    pushd "$repos/$package" >/dev/null 2>&1
+
+    # Make log name similar to beehive reports
+    # Note: gear-changelog prints 2 lines,
+    # so lets grab only 1st
+    local extendedName="$package-$(gear-changelog --header-only 2>/dev/null | \
+        sed -n '1s/.* //p')"
+    local tmpLog="$baseDir/building${num}-$extendedName.log"
+
+    if gear-hsh ${num:+--number="$num"} ~/hasher"$num" &>"$tmpLog"; then
+        printf "[%2d] %s\n" "$num" "$package build SUCCESS"
+        mv "$tmpLog" "$successDir/$extendedName"
+    else
+        printf "[%2d] %s\n" "$num" "$package build ERROR"
+        mv "$tmpLog" "$errorDir/$extendedName"
+    fi
+
+    popd >/dev/null 2>&1
+}
+
+mosquito3 "$@"

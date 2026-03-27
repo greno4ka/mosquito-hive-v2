@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+baseDir="$PWD"
+# It supposed, that all hashers were synchronized before start
+# and the main hasher repo contains all built srpms
+srpmDir="$HOME/hasher/repo/SRPMS.hasher"
+# Use the TIMESTAMP exported by the hive script
+timestamp="${TIMESTAMP:?TIMESTAMP is not set}"
+successDir="$baseDir/success4_$timestamp"
+errorDir="$baseDir/error4_$timestamp"
+mkdir -p "$successDir" "$errorDir"
+
+mosquito4() {
+    local num="$1"
+    local package="$2"
+
+    num="$(( num - 1 ))" # to count from zero
+    printf "[%2d] %s\n" "$num" "$package install start"
+
+    # Note: frequently updated packages can have multiple built srpms
+    # so lets grab the freshest one
+    local srpmFile=$(
+        for srpm in "$srpmDir"/*.src.rpm; do
+            base=$(basename "$srpm" .src.rpm)
+            name=$(printf "%s\n" "$base" | sed -E 's/-[^-]+-[^-]+$//')
+            [[ "$name" == "$package" ]] && echo "$srpm"
+        done | sort -V | tail -n1
+    )
+    # Make log name similar to beehive reports
+    local extendedName="$package-unknown"
+    local tmpLog="$baseDir/installing$num-$extendedName.log"
+
+    if [[ -f "$srpmFile" ]]; then
+        extendedName="$(basename "${srpmFile%.src.rpm}")"
+
+        hsh --ini &> /dev/null
+        hsh-install ${num:+--number="$num"} ~/hasher"$num" "$package" &>"$tmpLog"
+
+        if ! grep -q "E: Broken packages" "$tmpLog"; then
+            printf "[%2d] %s\n" "$num" "$package install SUCCESS"
+            mv "$tmpLog" "$successDir/$extendedName"
+        else
+            printf "[%2d] %s\n" "$num" "$package install ERROR"
+            mv "$tmpLog" "$errorDir/$extendedName"
+        fi
+    else
+        # srpmFile not found
+        printf "[%2d] %s\n" "$num" "$package install NOTFOUND"
+        echo "ERROR: no srpm found for $package in" &> "$tmpLog"
+        echo "$srpmDir" >> "$tmpLog"
+        echo "Assuming that package build was unsuccessful!" >> "$tmpLog"
+        mv "$tmpLog" "$errorDir/$extendedName"
+    fi
+
+}
+
+mosquito4 "$@"

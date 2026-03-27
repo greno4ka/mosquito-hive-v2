@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    echo "Usage: $0 <mode> < list"
+    echo
+    echo "Modes:"
+    echo " 1 basic rebuild of virgin srpms"
+    echo " 2 batch preparation list of gits"
+    echo " 3 rebuild of user prepared gits"
+    echo " 4 install of user builded packages"
+    exit 1
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+mode="$1"
+
+case "$mode" in
+    [1-4]) ;;
+    *) usage ;;
+esac
+
+# Generate a unique timestamp for this run and export it
+# so all parallel jobs share the same value
+export TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+time parallel \
+    --line-buffer \
+    -j $(( num_cores / 2 )) \
+    "./mosquito$mode" {%} {}

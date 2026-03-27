@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Can be overridden from outside: REPOS=/path/to/repos ./hive 2 < list
+repos="${REPOS:-$HOME/repos}"
+
+# Can be overridden from outside: PILLFILE=/path/to/pill ./hive 2 < list
+pillFile="${PILLFILE:-$HOME/spec-doctor/pill}"
+
+mosquito2() {
+    local num="$1"
+    local package="$2"
+
+    num="$(( num - 1 ))" # to count from zero
+    printf "[%2d] Processing %s\n" "$num" "$package"
+
+    pushd "$repos/$package" >/dev/null 2>&1
+    # Load the pill function and execute it
+    source "$pillFile"
+    pill
+    popd >/dev/null 2>&1
+}
+
+mosquito2 "$@"

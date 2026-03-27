@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+baseDir="$PWD"
+# Use the TIMESTAMP exported by the hive script
+timestamp="${TIMESTAMP:?TIMESTAMP is not set}"
+successDir="$baseDir/success1_$timestamp"
+errorDir="$baseDir/error1_$timestamp"
+mkdir -p "$successDir" "$errorDir"
+
+mosquito1() {
+    local num="$1"
+    local package="$2"
+
+    num="$(( num - 1 ))" # to count from zero
+    printf "[%2d] %s\n" "$num" "$package rebuild start"
+
+    # Resolve exact source package
+    local srpmFile="$(altlinux-repolist-src-names-to-src-files $package)"
+    local extendedName="$(basename "${srpmPath%.src.rpm}")"
+
+    local tmpLog="$baseDir/rebuilding$num-$extendedName.log"
+
+    if hsh ${num:+--number="$num"} ~/hasher"$num" "$srpmFile" &>"$tmpLog"; then
+        printf "[%2d] %s\n" "$num" "$package rebuild SUCCESS"
+        mv "$tmpLog" "$successDir/$extendedName"
+    else
+        printf "[%2d] %s\n" "$num" "$package rebuild ERROR"
+        mv "$tmpLog" "$errorDir/$extendedName"
+    fi
+}
+
+mosquito1 "$@"
