@@ -27,12 +27,10 @@ mosquito4() {
             [[ "$name" == "$package" ]] && echo "$srpm"
         done | sort -V | tail -n1
     )
-    # Make log name similar to beehive reports
-    local extendedName="$package-unknown"
-    local tmpLog="$baseDir/installing$num-$extendedName.log"
 
     if [[ -f "$srpmFile" ]]; then
-        extendedName="$(basename "${srpmFile%.src.rpm}")"
+        local extendedName="$(basename "${srpmFile%.src.rpm}")"
+        local tmpLog="$baseDir/installing$num-$extendedName.log"
 
         hsh --ini &> /dev/null
         hsh-install ${num:+--number="$num"} ~/hasher"$num" "$package" &>"$tmpLog"
@@ -46,6 +44,8 @@ mosquito4() {
         fi
     else
         # srpmFile not found
+        local extendedName="$package-unknown"
+        local tmpLog="$baseDir/installing$num-$extendedName.log"
         printf "[%2d] %s\n" "$num" "$package install NOTFOUND"
         echo "ERROR: no srpm found for $package in" &> "$tmpLog"
         echo "$srpmDir" >> "$tmpLog"
