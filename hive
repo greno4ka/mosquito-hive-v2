@@ -29,5 +29,5 @@ export TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 time parallel \
     --line-buffer \
-    -j $(( num_cores / 2 )) \
+    -j $(( $(nproc) / 2 )) \
     "./mosquito$mode" {%} {}
