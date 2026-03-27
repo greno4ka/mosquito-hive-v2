@@ -37,7 +37,7 @@ mosquito4() {
         hsh --ini &> /dev/null
         hsh-install ${num:+--number="$num"} ~/hasher"$num" "$package" &>"$tmpLog"
 
-        if ! grep -q "E: Broken packages" "$tmpLog"; then
+        if grep -q "$extendedName .* installed" "$tmpLog"; then
             printf "[%2d] %s\n" "$num" "$package install SUCCESS"
             mv "$tmpLog" "$successDir/$extendedName"
         else
