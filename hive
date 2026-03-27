@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 usage() {
     echo "Usage: $0 <mode> < list"
@@ -9,6 +9,7 @@ usage() {
     echo " 2 batch preparation list of gits"
     echo " 3 rebuild of user prepared gits"
     echo " 4 install of user builded packages"
+    echo " 5 check prepared gits for freshness"
     exit 1
 }
 
@@ -16,18 +17,44 @@ if [[ $# -lt 1 ]]; then
     usage
 fi
 
+# By default limit number of jobs with half of number of CPUs
+jobs=$(( $(nproc) / 2 ))
+
 mode="$1"
-
 case "$mode" in
-    [1-4]) ;;
-    *) usage ;;
+    1|3|4)
+        # Generate a unique timestamp for this run and export it
+        # so all parallel jobs share the same value
+        export TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        ;;
+    5)
+        # 10 is the maximum number of concurrent ssh connections to
+        # git.altlinux.org
+        jobs=10
+        # Use temp file to collect results from all jobs
+        export RESULTSFILE=$(mktemp "${TMPDIR:-/tmp}/mosquito5-XXXXXX")
+        ;;
+    2)
+        # Nothing needed for now
+        ;;
+    *)
+        usage
+        ;;
 esac
-
-# Generate a unique timestamp for this run and export it
-# so all parallel jobs share the same value
-export TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 time parallel \
     --line-buffer \
-    -j $(( $(nproc) / 2 )) \
+    -j $jobs \
     "./mosquito$mode" {%} {}
+
+if [[ "$mode" == 5 ]]; then
+    echo
+    echo "========== Mosquito5 results =========="
+    if [[ -s "$RESULTSFILE" ]]; then
+        echo "Version of these packages is older than in Sisyphus:"
+        cat "$RESULTSFILE"
+    else
+        echo "Your repos are up-to-date!"
+    fi
+    rm -f "$RESULTSFILE"
+fi

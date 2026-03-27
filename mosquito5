@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Can be overridden from outside: REPOS=/path/to/repos ./hive 5 < list
+repos="${REPOS:-$HOME/repos}"
+
+# Use the RESULTSFILE exported by the hive script
+resultsFile="${RESULTSFILE:?RESULTSFILE is not set}"
+
+mosquito5() {
+    local num="$1"
+    local package="$2"
+
+    num="$(( num - 1 ))" # to count from zero
+    printf "[%2d] Processing %s\n" "$num" "$package"
+
+    pushd "$repos/$package" >/dev/null 2>&1
+    git fetch -q --all --tags
+    spec="$(gear-rules-print-specfile 2>/dev/null)"
+    localVersion=$(rpmspec --query --qf '%{VERSION}-%{RELEASE}\n' $spec 2>/dev/null)
+    sisyphusVersion=$(git tag | grep -E '^[0-9].*-alt[0-9a-zA-Z.\-]*$' \
+        | sort -V | tail -n 1)
+    if (( $(rpmevrcmp "$sisyphusVersion" "$localVersion") > 0 )); then
+        flock "$resultsFile" -c "echo '$package' >> '$resultsFile'"
+    fi
+    popd >/dev/null 2>&1
+}
+
+mosquito5 "$@"
