@@ -12,7 +12,7 @@ mosquito5() {
     local package="$2"
 
     num="$(( num - 1 ))" # to count from zero
-    printf "[%2d] Processing %s\n" "$num" "$package"
+    printf "[%2d] Comparing %s\n" "$num" "$package"
 
     pushd "$repos/$package" >/dev/null 2>&1
     git fetch -q --all --tags
