@@ -32,7 +32,7 @@ mosquito4() {
         local extendedName="$(basename "${srpmFile%.src.rpm}")"
         local tmpLog="$baseDir/installing$num-$extendedName.log"
 
-        hsh --ini &> /dev/null
+        hsh --ini ${num:+--number="$num"} ~/hasher"$num" &> /dev/null
         hsh-install ${num:+--number="$num"} ~/hasher"$num" "$package" &>"$tmpLog"
 
         if grep -q "$extendedName .* installed" "$tmpLog"; then
