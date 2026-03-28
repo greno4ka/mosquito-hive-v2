@@ -17,7 +17,7 @@ mosquito1() {
 
     # Resolve exact source package
     local srpmFile="$(altlinux-repolist-src-names-to-src-files $package)"
-    local extendedName="$(basename "${srpmPath%.src.rpm}")"
+    local extendedName="$(basename "${srpmFile%.src.rpm}")"
 
     local tmpLog="$baseDir/rebuilding$num-$extendedName.log"
 
