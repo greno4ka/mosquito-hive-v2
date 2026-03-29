@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Can be overridden from outside: REPOS=/path/to/repos ./hive 6 < list
+repos="${REPOS:-$HOME/repos}"
+
+# Use the TIMESTAMP exported by the hive script
+timestamp="${TIMESTAMP:?TIMESTAMP is not set}"
+
+mosquito6() {
+    local num="$1"
+    local package="$2"
+
+    num="$(( num - 1 ))" # to count from zero
+    printf "[%2d] Syncronizing %s\n" "$num" "$package"
+
+    pushd "$repos/$package" >/dev/null 2>&1
+
+    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    # Of course I know, that no one confirmation of complete erasing data
+    # will not defend against extermination of working progress
+    # So make a backup just in case
+    git branch "mosquito6-backup-$timestamp"
+
+    git fetch -q --all --tags
+    git reset --hard -q "origin/$branch"
+
+# Use this command instead, if you want to reset your code not for the
+# latest package release, but for that release, that was initially clonned
+#
+#    git reset --hard -q \
+#        $(git merge-base $branch \
+#        $(git for-each-ref \
+#        --sort=-taggerdate --format '%(refname:short)' refs/tags | \
+#        head -n 1))
+
+    popd >/dev/null 2>&1
+}
+
+mosquito6 "$@"

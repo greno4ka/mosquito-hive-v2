@@ -10,6 +10,7 @@ usage() {
     echo " 3 rebuild of user prepared gits"
     echo " 4 install of user builded packages"
     echo " 5 check prepared gits for freshness"
+    echo " 6 synchronize/cleanup user gits"
     exit 1
 }
 
@@ -33,6 +34,19 @@ case "$mode" in
         jobs=10
         # Use temp file to collect results from all jobs
         export RESULTSFILE=$(mktemp "${TMPDIR:-/tmp}/mosquito5-XXXXXX")
+        ;;
+    6)
+        # Generate a unique timestamp for this run and export it
+        # so all parallel jobs share the same value
+        export TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        echo "This scenario will reset all your changes in"
+        echo "${REPOS:-$HOME/repos}"
+        read -p "Enter confirmation: Yes, do it!" input
+
+        if [[ "$input" != "Yes, do it!" ]]; then
+            echo "Abort."
+            exit 1
+        fi
         ;;
     2)
         # Nothing needed for now
