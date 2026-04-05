@@ -18,8 +18,8 @@ if [[ $# -lt 1 ]]; then
     usage
 fi
 
-# By default limit number of jobs with half of number of CPUs
-jobs=$(( $(nproc) / 2 ))
+source config
+jobs=$(numHashers)
 
 mode="$1"
 case "$mode" in
