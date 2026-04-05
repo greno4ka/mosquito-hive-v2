@@ -5,11 +5,16 @@ source spinner
 spinner &
 spinner_pid=$!
 
+rpmDir="repo/x86_64/RPMS.hasher"
+srpmDir="repo/SRPMS.hasher"
+
 echo "Cleaning hashers"
-rm -f hasher/repo/x86_64/RPMS.hasher/*.rpm
+rm -f "$HOME/hasher/$rpmDir/*"
+rm -f "$HOME/hasher/$srpmDir/*"
 
 for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
-    rm -f hasher"$i"/repo/x86_64/RPMS.hasher/*.rpm
+    rm -f "$HOME/hasher$i/$rpmDir/*"
+    rm -f "$HOME/hasher$i/$srpmDir/*"
 done
 
 kill "$spinner_pid" >/dev/null 2>&1

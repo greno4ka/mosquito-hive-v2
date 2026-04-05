@@ -10,7 +10,7 @@ pids=($!)
 
 for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
     mkdir -p "$TMP/hasher$i"
-    hsh --ini "hasher$i" 2>/dev/null &
+    hsh --ini "$HOME/hasher$i" 2>/dev/null &
     pids+=($!)
 done
 
