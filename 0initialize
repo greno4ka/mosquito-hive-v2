@@ -1,5 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
+source config
 source spinner
 
 echo "Initializing hashers"
@@ -8,7 +10,7 @@ mkdir -p "$TMP/hasher"
 hsh --ini 2>/dev/null &
 pids=($!)
 
-for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
+for (( i=0 ; i<$(numHashers) ; i++ )); do
     mkdir -p "$TMP/hasher$i"
     hsh --ini "$HOME/hasher$i" 2>/dev/null &
     pids+=($!)

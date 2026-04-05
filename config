@@ -1,0 +1,7 @@
+#!/bin/bash
+
+numHashers() {
+    local procs=${NUM_HASHERS:-$(( $(nproc) / 2 ))}
+    (( procs < 1 )) && procs=1
+    echo "$procs"
+}

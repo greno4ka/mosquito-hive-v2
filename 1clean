@@ -1,5 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
+source config
 source spinner
 
 spinner &
@@ -9,12 +11,12 @@ rpmDir="repo/x86_64/RPMS.hasher"
 srpmDir="repo/SRPMS.hasher"
 
 echo "Cleaning hashers"
-rm -f "$HOME/hasher/$rpmDir/*"
-rm -f "$HOME/hasher/$srpmDir/*"
+rm -f "$HOME/hasher/$rpmDir/"*
+rm -f "$HOME/hasher/$srpmDir/"*
 
-for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
-    rm -f "$HOME/hasher$i/$rpmDir/*"
-    rm -f "$HOME/hasher$i/$srpmDir/*"
+for (( i=0 ; i<$(numHashers) ; i++ )); do
+    rm -f "$HOME/hasher$i/$rpmDir/"*
+    rm -f "$HOME/hasher$i/$srpmDir/"*
 done
 
 kill "$spinner_pid" >/dev/null 2>&1

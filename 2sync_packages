@@ -1,5 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
+source config
 source spinner
 
 spinner &
@@ -8,14 +10,14 @@ spinner_pid=$!
 rpmDir="repo/x86_64/RPMS.hasher"
 srpmDir="repo/SRPMS.hasher"
 
-for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
-    mv "$HOME/hasher$i/$rpmDir/*" "$HOME/hasher/$rpmDir/"
-    mv "$HOME/hasher$i/$srpmDir/*" "$HOME/hasher/$srpmDir/"
+for (( i=0 ; i<$(numHashers) ; i++ )); do
+    mv -f "$HOME/hasher$i/$rpmDir/"* "$HOME/hasher/$rpmDir/"
+    mv -f "$HOME/hasher$i/$srpmDir/"* "$HOME/hasher/$srpmDir/"
 done
 
-for (( i=0; i<$(( $(nproc) / 2 )) ; i++ )); do
-    cp -al "$HOME/hasher/$rpmDir/*" "$HOME/hasher$i/$rpmDir/"
-    cp -al "$HOME/hasher/$srpmDir/*" "$HOME/hasher$i/$srpmDir/"
+for (( i=0; i<$(numHashers) ; i++ )); do
+    cp -al "$HOME/hasher/$rpmDir/"* "$HOME/hasher$i/$rpmDir/"
+    cp -al "$HOME/hasher/$srpmDir/"* "$HOME/hasher$i/$srpmDir/"
 done
 
 kill "$spinner_pid" >/dev/null 2>&1
