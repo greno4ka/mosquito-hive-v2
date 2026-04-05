@@ -81,4 +81,6 @@ Make sure the following tools are installed:
 
 - `gear`
 - `hasher`
+- `parallel` (note: not moreutils-parallel)
 - `altlinux-repolist-utils` (required for mosquito1)
+- `sshfs` (required for mosquito1 for remote builds)
