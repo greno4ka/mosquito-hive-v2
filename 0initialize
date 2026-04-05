@@ -1,0 +1,25 @@
+#!/bin/bash
+
+source spinner
+
+echo "Initializing hashers"
+
+mkdir -p "$TMP/hasher"
+hsh --ini 2>/dev/null &
+pids=($!)
+
+for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
+    mkdir -p "$TMP/hasher$i"
+    hsh --ini "hasher$i" 2>/dev/null &
+    pids+=($!)
+done
+
+spinner &
+spinner_pid=$!
+
+for pid in "${pids[@]}"; do
+    wait "$pid"
+done
+
+kill "$spinner_pid" >/dev/null 2>&1
+echo

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+spinner() {
+    local chars="/|\-"
+    local start="$(date +%s)"
+    while true; do
+        for ((i=0; i<4; i++)); do
+            printf "\r${chars:$i:1} [$(( $(date +%s) - $start))s]"
+            sleep 0.2
+        done
+    done
+}

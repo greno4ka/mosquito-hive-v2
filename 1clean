@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source spinner
+
+spinner &
+spinner_pid=$!
+
+echo "Cleaning hashers"
+rm -f hasher/repo/x86_64/RPMS.hasher/*.rpm
+
+for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
+    rm -f hasher"$i"/repo/x86_64/RPMS.hasher/*.rpm
+done
+
+kill "$spinner_pid" >/dev/null 2>&1
+echo

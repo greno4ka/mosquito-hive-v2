@@ -1,0 +1,22 @@
+#!/bin/bash
+
+source spinner
+
+spinner &
+spinner_pid=$!
+
+rpmDir="repo/x86_64/RPMS.hasher"
+srpmDir="repo/SRPMS.hasher"
+
+for (( i=0 ; i<$(( $(nproc) / 2 )) ; i++ )); do
+    mv ~/hasher"$i"/$rpmDir/* ~/hasher/$rpmDir/
+    mv ~/hasher"$i"/$srpmDir/* ~/hasher/$srpmDir/
+done
+
+for (( i=0; i<$(( $(nproc) / 2 )) ; i++ )); do
+    cp -al ~/hasher/$rpmDir/* ~/hasher"$i"/$rpmDir/
+    cp -al ~/hasher/$srpmDir/* ~/hasher"$i"/$srpmDir/
+done
+
+kill "$spinner_pid" >/dev/null 2>&1
+echo
